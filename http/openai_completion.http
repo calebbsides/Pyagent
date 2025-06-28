@@ -1,0 +1,8 @@
+### Example request to /openai/completion endpoint using REST Client extension
+
+POST http://localhost:8000/openai/completion
+Content-Type: application/json
+
+{
+  "prompt": "Tell me a joke about cats."
+}
