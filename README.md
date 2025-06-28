@@ -10,5 +10,9 @@
 - The API will be available at http://127.0.0.1:8000
 - The interactive docs will be at http://127.0.0.1:8000/docs
 
+## Gemini 
+
+api key here https://aistudio.google.com/apikey
+
 # Pyagent
 AI agent with python and pydantic
