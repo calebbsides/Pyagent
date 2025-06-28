@@ -29,7 +29,7 @@ Pyagent is a modern Python agent framework that leverages FastAPI, Google Gemini
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/calebbsides/Pyagent.git
    cd Pyagent
    ```
 

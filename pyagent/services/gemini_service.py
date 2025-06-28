@@ -4,6 +4,8 @@ from google.genai import types
 from pyagent.utils.function_calls import handle_function_calls
 from pyagent.core.config import settings
 from pyagent.core.errors import http_500_error
+from pyagent.models.weather import WeatherResponse
+
 
 def generate_weather_content():
     """
@@ -11,7 +13,7 @@ def generate_weather_content():
     """
     client = get_gemini_client()
     prompt = "What's the temperature in London?"
-    config = types.GenerateContentConfig(tools=tools)
+    config = types.GenerateContentConfig(tools=tools,response_schema=WeatherResponse,response_mime_type="application/json")
     contents = [types.Content(role="user", parts=[types.Part(text=prompt)])]
 
     try:
@@ -28,6 +30,6 @@ def generate_weather_content():
             config=config,
             contents=contents,
         )
-        return getattr(final_response, "text", final_response)
+        return final_response.parsed
     except Exception as exc:
         raise http_500_error(exc)
