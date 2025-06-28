@@ -1,4 +1,0 @@
-### Example usage for /generate-content endpoint
-
-GET http://localhost:8000/weather
-Content-Type: application/json
