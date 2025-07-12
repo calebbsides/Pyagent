@@ -1,8 +1,14 @@
 from pydantic import BaseModel
 
-class ChatMessage(BaseModel):
-    role: str
-    text: str
-
-class PostMessageRequest(BaseModel):
+class PostContentRequest(BaseModel):
     message: str
+
+class PostContentResponse(BaseModel):
+    Facebook: str
+    Instagram: str
+    LinkedIn: str
+    TikTok: str
+    YouTube: str
+    Snapchat: str
+    X: str
+    Reddit: str
