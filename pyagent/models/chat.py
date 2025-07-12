@@ -1,4 +1,3 @@
-from typing import List
 from pydantic import BaseModel
 
 class ChatMessage(BaseModel):
@@ -6,4 +5,4 @@ class ChatMessage(BaseModel):
     text: str
 
 class PostMessageRequest(BaseModel):
-    chat_history: List[ChatMessage]
+    message: str

@@ -1,39 +1,30 @@
-from typing import List
-from pyagent.clients.gemini import get_gemini_client
-from google.genai import types
-from pyagent.core.config import settings
-from pyagent.core.errors import http_500_error
-from pyagent.models.chat import ChatMessage
+import os
+from fastapi import HTTPException
+from google.genai import types, Client
+from dotenv import load_dotenv
+from pyagent.tools.facebook_tool import create_fb_post
+from pyagent.tools.instagram_tool import create_ig_post
 
-def respond_to_chat(chat_history: List[ChatMessage]) -> str:
-    try:
-        client = get_gemini_client()
-        contents = []
+load_dotenv()
 
-        # Build chat history for Gemini
-        # Gemini expects a list of Content objects, each with a role and parts
-        # Parts is a list of Part objects, each with text
-        if chat_history:
-            for msg in chat_history:
-                contents.append(types.Content(role=msg.role, parts=[types.Part(text=msg.text)]))
 
-        response = client.models.generate_content(
-            model=settings.BASE_MODEL,
-            contents=contents
-        )
+class GeminiService:
+    _model = "gemini-2.5-flash"
+    _config = types.GenerateContentConfig(
+        tools=[create_fb_post, create_ig_post],
+    )
 
-        candidates = getattr(response, "candidates", None)
-        if not candidates or not candidates[0] or not hasattr(candidates[0], "content"):
-            raise RuntimeError("No response from Gemini.")
-            
-        content = candidates[0].content
-        if not content or not hasattr(content, "parts") or not content.parts or not content.parts[0]:
-            raise RuntimeError("No response from Gemini.")
-        
-        text = getattr(content.parts[0], "text", None)
-        if not text:
-            raise RuntimeError("No response from Gemini.")
-        
-        return text
-    except Exception as exc:
-        raise http_500_error(exc)
+    def __init__(self):
+        api_key = os.getenv("GEMINI_API_KEY")
+        self._client = Client(api_key=api_key)
+
+    def respond_to_chat(self, prompt: str):
+        try:
+            response = self._client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt,
+                config=self._config,
+            )
+            return response.text
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Gemini service error: {exc}")

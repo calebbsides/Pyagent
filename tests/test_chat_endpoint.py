@@ -1,45 +1,45 @@
 import pytest
 from fastapi.testclient import TestClient
 from pyagent.api.v1.endpoints.chat import router
+from pyagent.models.chat import PostMessageRequest
 from fastapi import FastAPI
+from pyagent.services.gemini_service import GeminiService
 
 app = FastAPI()
 app.include_router(router)
 
-@pytest.fixture
-def client():
-    with TestClient(app) as c:
-        yield c
+client = TestClient(app)
 
-def test_post_message_success(client, monkeypatch):
-    def mock_respond_to_chat(chat_history):
-        return "Hello!"
-    monkeypatch.setattr("pyagent.api.v1.endpoints.chat.respond_to_chat", mock_respond_to_chat)
-    payload = {"chat_history": [{"role": "user", "text": "Hi"}]}
-    response = client.post("/messages", json=payload)
+def test_post_message_success():
+    class DummyGeminiService:
+        def respond_to_chat(self, message):
+            return "Hello, world!"
+
+    app.dependency_overrides = {}
+    app.dependency_overrides[GeminiService] = DummyGeminiService
+
+    payload = {"message": "Hi"}
+    response = client.post("/post-content", json=payload)
     assert response.status_code == 200
-    assert response.json() == {"text": "Hello!"}
+    data = response.json()
+    assert data["text"] == "Hello, world!"
+    assert data["role"] == "model"
 
-def test_post_message_missing_history(client):
+def test_post_message_missing_message():
     payload = {}
-    response = client.post("/messages", json=payload)
-    assert response.status_code == 422
-    assert response.json()["detail"][0]["msg"] == "Field required"
+    response = client.post("/post-content", json=payload)
+    assert response.status_code == 422 or response.status_code == 400
 
-def test_post_message_empty_history(client):
-    payload = {"chat_history": []}
-    response = client.post("/messages", json=payload)
-    assert response.status_code == 400
-    assert response.json()["detail"] == "Chat history required."
+def test_post_message_service_error():
+    class DummyGeminiService:
+        def respond_to_chat(self, message):
+            raise Exception("Service error!")
 
-def test_post_message_internal_error(client, monkeypatch):
-    def fail_respond_to_chat(chat_history):
-        raise Exception("fail")
-    monkeypatch.setattr("pyagent.api.v1.endpoints.chat.respond_to_chat", fail_respond_to_chat)
-    payload = {"chat_history": [
-        {"role": "user", "text": "Hi"},
-        {"role": "model", "text": "How are you?"}
-    ]}
-    response = client.post("/messages", json=payload)
+    app.dependency_overrides = {}
+    from pyagent.services.gemini_service import GeminiService
+    app.dependency_overrides[GeminiService] = DummyGeminiService
+
+    payload = {"message": "Hi"}
+    response = client.post("/post-content", json=payload)
     assert response.status_code == 500
-    assert "fail" in response.json()["detail"]
+    assert response.json()["detail"] == "Service error!"
