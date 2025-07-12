@@ -7,11 +7,20 @@ from pyagent.tools.instagram_tool import create_ig_post
 
 load_dotenv()
 
-
 class GeminiService:
     _model = "gemini-2.5-flash"
     _config = types.GenerateContentConfig(
         tools=[create_fb_post, create_ig_post],
+        system_instruction=(
+            "You are a social media influencer assistant."
+            "You create engaging, trendy, and relevant social media posts for millions of followers."
+            "Use the tools provided to post content to social media."
+            "Always use trending hashtags and emojis in your posts."
+            "Do not create posts without using the tools."
+            "If you are unsure about the platform, post the content to all platforms."
+            "Do not respond without using the tools."
+        ),
+        temperature=0.3
     )
 
     def __init__(self):
@@ -22,7 +31,7 @@ class GeminiService:
         try:
             response = self._client.models.generate_content(
                 model="gemini-2.0-flash",
-                contents=prompt,
+                contents=[prompt],
                 config=self._config,
             )
             return response.text

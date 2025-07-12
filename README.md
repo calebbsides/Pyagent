@@ -59,7 +59,7 @@ requirements.txt        # Python dependencies
    - You need a Google Gemini API key: https://aistudio.google.com/apikey
 5. **Run the app**
    ```bash
-   uvicorn pyagent.main:app
+   uvicorn pyagent.main:app --reload
    ```
    - API: http://127.0.0.1:8000
    - Docs: http://127.0.0.1:8000/docs
